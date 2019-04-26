@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  
+  <!-- Give product a unique ID per Platform -->
+  <?if $(var.Platform) = x64 ?>
+  <?define ProductCode = "*" ?>
+  <?else?>
+  <?define ProductCode = "*" ?>
+  <?endif?>
+  
+  <!-- Fixed upgrade Id -->
+  <?define ProductUpgradeCode="D6261B75-48C6-4A32-B9C0-5DC5B41C3980" ?>
+  
+  <!-- Define Main Product -->
+	<Product Id="$(var.ProductCode)" 
+           Name="!(loc.ProductName_$(var.Platform))" 
+           Language="!(loc.Language)" 
+           Version="$(var.BuildVersion)" 
+           Manufacturer="!(loc.Company)" 
+           UpgradeCode="$(var.ProductUpgradeCode)"
+           >
+		<!-- Provide package details -->
+    <Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             Platform="$(var.Platform)"
+             Manufacturer="!(loc.Company)"
+             Description="!(loc.Description)"
+             Keywords="!(loc.Keywords)"
+             Comments="!(loc.Comments)"
+             Languages="!(loc.Language)"
+             />
+
+    <!-- Downgrade error message -->
+		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeErrorMessage)" />
+    
+    <!-- Prevent same version being installed -->
+    <Upgrade Id="$(var.ProductUpgradeCode)" >
+      <UpgradeVersion Minimum="$(var.BuildVersion)" IncludeMinimum="yes" OnlyDetect="yes" Property="ALLREADYINSTALLED" />
+      <UpgradeVersion Maximum="$(var.BuildVersion)" IncludeMaximum="no" OnlyDetect="no" Property="INSTALLED" />
+    </Upgrade>
+    <Condition Message="!(loc.ProductName_$(var.Platform)) is already Installed.">NOT ALLREADYINSTALLED</Condition>
+		
+    <!-- Include .cab file into msi file -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Define Main app icon -->
+    <Icon Id="icon.ico" SourceFile="$(var.ConsoleApp1.ProjectDir)\app.ico"/>
+
+    <!-- Use the icon.ico icon for this installer (shows up in Add/Remove programs) -->
+    <Property Id="ARPPRODUCTICON">icon.ico</Property>
+    <!-- Help/Support  website (shows in the Add/Remove programs -->
+    <Property Id="ARPURLINFOABOUT">https://online.raincode.com</Property>
+    <Property Id="ARPURLUPDATEINFO">https://www.raincode.com</Property>
+     
+    <!-- Change the installer UI background images -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.ProjectDir)\Assets\License.rtf" />
+    <WixVariable Id="WixUIDialogBmp" Value="$(var.ProjectDir)\Assets\Background.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="$(var.ProjectDir)\Assets\Banner.bmp" />
+
+    <UI>
+      <!-- Create a basic UI for the installer -->
+      <UIRef Id="WixUI_Minimal" />
+      
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="UpgradeWarningDlg" Order="1">PREVIOUSVERSIONSINSTALLED</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg" Order="2">1</Publish>
+    </UI>
+    
+    <!-- Define components, shortcuts, files etc.. for installer -->
+		<Feature Id="ProductFeature" Title="ConsoleApp" Level="1">
+			
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="PublishComponents" /> 
+      
+    </Feature>
+    
+	</Product>
+	
+</Wix>
